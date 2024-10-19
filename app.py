@@ -1,32 +1,33 @@
 import streamlit as st
+from transformers import pipeline
 
-# Basic chatbot function that processes user input
-def chatbot_response(user_input):
-    responses = {
-        "hello": "Hi there! How can I assist you today?",
-        "how are you": "I'm just a bot, but I'm doing great! How about you?",
-        "what is your name": "I am a simple chatbot created for demo purposes.",
-        "bye": "Goodbye! Feel free to come back anytime."
-    }
+# Load the NLP model from Hugging Face (GPT-2)
+@st.cache_resource
+def load_model():
+    return pipeline("text-generation", model="gpt2")
 
-    # Basic keyword-based response logic
-    for key in responses:
-        if key in user_input.lower():
-            return responses[key]
-    
-    return "I'm sorry, I don't understand. Can you rephrase?"
+# Chatbot function using the Hugging Face model
+def chatbot_response(model, user_input):
+    # Generate a response from the model
+    responses = model(user_input, max_length=50, num_return_sequences=1)
+    # Get the generated response
+    return responses[0]["generated_text"]
 
 # Streamlit app UI
 def main():
-    st.title("Simple Chatbot")
+    st.title("AI-powered Chatbot using Hugging Face")
+
+    # Load the model
+    model = load_model()
 
     # Text input from the user
     user_input = st.text_input("You: ", "")
 
     # Check if there's input and display the chatbot's response
     if user_input:
-        response = chatbot_response(user_input)
-        st.write(f"Bot: {response}")
+        with st.spinner("Thinking..."):
+            response = chatbot_response(model, user_input)
+        st.write(f"Bot: {response[len(user_input):]}")  # Clean up response by removing the input part
 
 if __name__ == "__main__":
     main()
