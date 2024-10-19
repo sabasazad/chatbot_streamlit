@@ -1,21 +1,24 @@
 import streamlit as st
 from transformers import pipeline
 
-# Load the NLP model from Hugging Face (GPT-2)
+# Load the T5 model from Hugging Face
 @st.cache_resource
 def load_model():
-    return pipeline("text-generation", model="gpt2")
+    # T5 is usually used in the 'text2text-generation' pipeline
+    return pipeline("text2text-generation", model="t5-small")
 
-# Chatbot function using the Hugging Face model
+# Chatbot function using the T5 model
 def chatbot_response(model, user_input):
     # Generate a response from the model
-    responses = model(user_input, max_length=50, num_return_sequences=1)
+    # T5 requires a task prefix; we use "chat" as a prompt
+    prompt = f"chat: {user_input}"
+    responses = model(prompt, max_length=50, num_return_sequences=1)
     # Get the generated response
     return responses[0]["generated_text"]
 
 # Streamlit app UI
 def main():
-    st.title("AI-powered Chatbot using Hugging Face")
+    st.title("AI-powered Chatbot using Hugging Face T5")
 
     # Load the model
     model = load_model()
@@ -27,7 +30,7 @@ def main():
     if user_input:
         with st.spinner("Thinking..."):
             response = chatbot_response(model, user_input)
-        st.write(f"Bot: {response[len(user_input):]}")  # Clean up response by removing the input part
+        st.write(f"Bot: {response}")
 
 if __name__ == "__main__":
     main()
